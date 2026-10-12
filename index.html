@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>英文並び替えマスター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#eef3fb; --card:#ffffff; --ink:#1c2a4d; --sub:#5b6a8c; --line:#c9d4ea; --rule:#9db1da;
+  --tile:#ffffff; --tile-edge:#b5c3e0; --ok:#12a37f; --okbg:#e3f7f0; --ng:#e5484d; --ngbg:#fdeaea;
+  --accent:#2f6fed; --shadow:rgba(28,42,77,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121a2e; --card:#1b2640; --ink:#e8eefc; --sub:#9fb0d4; --line:#33426a; --rule:#4a5f94;
+    --tile:#26345a; --tile-edge:#0d1426; --ok:#3ccfa6; --okbg:#143a33; --ng:#ff7377; --ngbg:#40202a;
+    --accent:#6c9bff; --shadow:rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121a2e; --card:#1b2640; --ink:#e8eefc; --sub:#9fb0d4; --line:#33426a; --rule:#4a5f94;
+  --tile:#26345a; --tile-edge:#0d1426; --ok:#3ccfa6; --okbg:#143a33; --ng:#ff7377; --ngbg:#40202a;
+  --accent:#6c9bff; --shadow:rgba(0,0,0,.35);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;
+  font-weight:500; line-height:1.6; -webkit-tap-highlight-color:transparent;
+}
+#app{max-width:640px;margin:0 auto;padding:18px 16px 40px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* ---------- Home ---------- */
+h1{font-size:30px;font-weight:900;margin:6px 0 2px;letter-spacing:.02em}
+.lead{color:var(--sub);margin:0 0 18px;font-size:14px}
+.stats{display:flex;gap:10px;margin-bottom:18px}
+.stat{flex:1;background:var(--card);border-radius:14px;padding:10px 12px;box-shadow:0 2px 0 var(--shadow)}
+.stat b{display:block;font-size:22px;font-weight:900}
+.stat span{font-size:12px;color:var(--sub)}
+h2{font-size:15px;font-weight:900;margin:22px 0 8px;color:var(--sub)}
+.cats{display:grid;gap:10px}
+.cat{
+  display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-align:left;
+  background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 14px;
+  position:relative;overflow:hidden;
+}
+.cat[aria-pressed="true"]{border-color:var(--c);box-shadow:0 3px 0 var(--c)}
+.cat .dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;color:#fff;background:transparent}
+.cat[aria-pressed="true"] .dot{background:var(--c);border-color:var(--c)}
+.cat .nm{font-weight:900;font-size:17px}
+.cat .jp{font-size:13px;color:var(--sub)}
+.cat .ms{font-size:12px;color:var(--sub);text-align:right;white-space:nowrap}
+.cat .meter{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.cat .meter i{display:block;height:100%;background:var(--c);width:0}
+.seg{display:flex;background:var(--card);border-radius:14px;padding:4px;gap:4px;border:2px solid var(--line)}
+.seg button{flex:1;border:0;background:transparent;padding:9px 6px;border-radius:10px;font-weight:700;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.hintline{font-size:12px;color:var(--sub);margin:6px 2px 0}
+.btn{
+  display:block;width:100%;border:0;border-radius:16px;padding:15px;font-weight:900;font-size:18px;
+  background:var(--accent);color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.22);
+}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.22)}
+.btn.alt{background:var(--card);color:var(--ink);border:2px solid var(--line);box-shadow:0 3px 0 var(--line);font-size:15px;padding:12px}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.stack{display:grid;gap:10px;margin-top:18px}
+details{background:var(--card);border-radius:14px;margin-bottom:8px;border:2px solid var(--line)}
+summary{padding:12px 14px;font-weight:900;cursor:pointer;list-style:none;display:flex;gap:10px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary i{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+details .body{padding:0 14px 14px;font-size:14px}
+details .body p{margin:6px 0}
+.ex{background:var(--bg);border-radius:10px;padding:8px 10px;margin:6px 0;font-weight:700}
+.ex small{display:block;color:var(--sub);font-weight:500}
+.ng{color:var(--ng);font-weight:900}
+.reset{background:none;border:0;color:var(--sub);font-size:12px;text-decoration:underline;margin-top:22px}
+
+/* ---------- Quiz ---------- */
+.top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.quit{border:0;background:var(--card);border-radius:12px;padding:8px 12px;font-weight:700;font-size:13px;box-shadow:0 2px 0 var(--shadow)}
+.prog{flex:1;height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.count{font-weight:900;font-size:14px;min-width:46px;text-align:right}
+.badge{
+  display:inline-block;padding:4px 12px;border-radius:999px;background:var(--c);color:#fff;
+  font-weight:900;font-size:13px;margin-bottom:8px;
+}
+.jp-q{font-size:22px;font-weight:900;line-height:1.5;margin:4px 0 14px}
+.paper{
+  background:var(--card);border-radius:18px;padding:10px 12px 6px;box-shadow:0 3px 0 var(--shadow);min-height:132px;
+}
+.rows{
+  display:flex;flex-wrap:wrap;gap:10px 8px;align-content:flex-start;min-height:112px;padding-top:6px;
+  background-image:repeating-linear-gradient(to bottom,transparent 0 51px,var(--rule) 51px 53px,transparent 53px 58px);
+  background-size:100% 58px;
+}
+.rows .empty{color:var(--sub);font-size:13px;align-self:center;width:100%;text-align:center;padding:30px 0}
+.tile{
+  border:2px solid var(--tile-edge);background:var(--tile);color:var(--ink);
+  height:46px;padding:0 14px;border-radius:12px;font-size:19px;font-weight:700;
+  box-shadow:0 3px 0 var(--tile-edge);white-space:nowrap;
+}
+.tile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--tile-edge)}
+.tile.used{opacity:.18;pointer-events:none;box-shadow:none}
+.tile.ok{border-color:var(--ok);background:var(--okbg);box-shadow:0 3px 0 var(--ok)}
+.tile.bad{border-color:var(--ng);background:var(--ngbg);box-shadow:0 3px 0 var(--ng)}
+.tile.hl{outline:3px dashed var(--accent);outline-offset:2px}
+.tile.locked{pointer-events:none}
+.bank{display:flex;flex-wrap:wrap;gap:10px 8px;justify-content:center;margin:18px 0 8px;min-height:60px}
+.tools{display:flex;gap:8px;justify-content:center;margin:6px 0 14px}
+.tools button{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:8px 14px;font-weight:700;font-size:13px}
+.hintbox{background:var(--card);border-left:6px solid var(--c);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.fb{border-radius:16px;padding:14px;margin-top:14px;animation:pop .25s ease-out}
+.fb.ok{background:var(--okbg);border:2px solid var(--ok)}
+.fb.ng{background:var(--ngbg);border:2px solid var(--ng)}
+.fb h3{margin:0 0 4px;font-size:20px;font-weight:900}
+.fb.ok h3{color:var(--ok)} .fb.ng h3{color:var(--ng)}
+.fb .ans{font-size:19px;font-weight:900;margin:6px 0}
+.fb .note{font-size:14px;color:var(--ink);margin:6px 0 0}
+.speak{border:0;background:var(--card);border-radius:10px;padding:4px 10px;font-size:14px;margin-left:6px}
+@keyframes pop{from{transform:scale(.97);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){.fb{animation:none}.prog i{transition:none}}
+
+/* ---------- Result ---------- */
+.score{text-align:center;margin:10px 0 18px}
+.score .big{font-size:64px;font-weight:900;line-height:1}
+.score .big small{font-size:24px;color:var(--sub)}
+.score p{margin:6px 0 0;font-weight:700}
+.miss{background:var(--card);border-radius:14px;padding:10px 14px;margin-bottom:8px;border-left:6px solid var(--c)}
+.miss .j{font-size:13px;color:var(--sub)}
+.miss .e{font-weight:900;font-size:17px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============ データ ============ */
+const CATS = [
+  {id:'haveto', name:'have to', jp:'〜しなければならない / 〜する必要はない', c:'#2f6fed',
+   tip:'have to ＋ 動詞の原形。主語が3人称単数なら has to。否定は don\'t / doesn\'t have to（＝する必要はない）。疑問文は Do / Does ＋ 主語 ＋ have to 〜?'},
+  {id:'must', name:'must', jp:'〜しなければならない / 〜してはいけない', c:'#e5484d',
+   tip:'must ＋ 動詞の原形。must は助動詞なので主語が何でも形は同じ。否定 must not（mustn\'t）は「〜してはいけない」（禁止）。'},
+  {id:'svoo', name:'give / make / lend / tell', jp:'人に ものを 〜する（SVOO）', c:'#12a37f',
+   tip:'S ＋ V ＋ 人 ＋ もの の順。give / make / lend / tell / teach / show は「人」を先、「もの」を後ろに置く。'},
+  {id:'glad', name:'I\'m glad to 〜', jp:'〜して うれしい・悲しい・驚いた', c:'#e08a00',
+   tip:'感情を表す語（glad / happy / sad / surprised）＋ to ＋ 動詞の原形で、感情の原因・理由を表す。'},
+  {id:'wh', name:'疑問詞 ＋ to 〜', jp:'どう〜すべきか・何を〜すべきか', c:'#8a5cf5',
+   tip:'疑問詞 ＋ to ＋ 動詞の原形。how to 〜（〜の仕方）/ what to 〜（何を〜すべきか）/ where to 〜 / when to 〜 / which to 〜。know・tell・ask などの後ろに置く。'}
+];
+
+/* [カテゴリ, 日本語, 英文, ダミー語(チャレンジ用), ひとこと解説] */
+const RAW = [
+ // ---- have to ----
+ ['haveto','私は夕食の前に宿題を終わらせなければなりません。','I have to finish my homework before dinner.','has'],
+ ['haveto','私の姉は毎日ピアノを練習しなければなりません。','My sister has to practice the piano every day.','have','主語が3人称単数（My sister）なので has to。'],
+ ['haveto','私は今夜、お皿を洗う必要はありません。','I don\'t have to wash the dishes tonight.','must','don\'t have to ＝「〜する必要はない」。禁止（〜してはいけない）ではありません。'],
+ ['haveto','私たちは金曜日に制服を着なければなりませんか。','Do we have to wear a uniform on Friday?','does'],
+ ['haveto','お弁当を持ってくる必要はありませんよ。','You don\'t have to bring a lunch box.','doesn\'t'],
+ ['haveto','それなら、私たちは早く家を出なければなりません。','Then we have to leave home early.','has'],
+ ['haveto','私たちは博物館のチケットを買う必要はありません。','We don\'t have to buy a ticket for the museum.','must'],
+ ['haveto','太郎は今日、教室を掃除しなければなりませんか。','Does Taro have to clean the classroom today?','do','主語が Taro（3人称単数）なので Does ＋ 主語 ＋ have to 〜?。have のまま変わらない点に注意。'],
+ ['haveto','彼女は毎朝、犬にえさをやらなければなりません。','She has to feed the dog every morning.','have'],
+ ['haveto','私は昨日、母を手伝わなければなりませんでした。','I had to help my mother yesterday.','must','have to の過去形は had to。must には過去形がないので、過去のことは had to で表します。'],
+ ['haveto','彼は私たちを待つ必要はありません。','He doesn\'t have to wait for us.','don\'t'],
+ ['haveto','私の父は日曜日は働かなくてもいいです。','My father doesn\'t have to work on Sunday.','don\'t'],
+
+ // ---- must ----
+ ['must','私は今日中にこのレポートを仕上げなければなりません。','I must finish this report today.','to'],
+ ['must','ここで絵にさわってはいけません。','You must not touch the paintings here.','don\'t','must not ＝「〜してはいけない」（禁止）。don\'t have to（〜する必要はない）と混同しないこと！'],
+ ['must','自転車に乗るときは、ヘルメットをかぶらなければなりません。','You must wear a helmet when you ride a bike.','to'],
+ ['must','私たちは図書館で食べてはいけません。','We must not eat in the library.','don\'t'],
+ ['must','私たちは教室をきれいに保たなければなりません。','We must keep our classroom clean.','have'],
+ ['must','私たちは校則を守らなければなりません。','We must follow the school rules.','to'],
+ ['must','私たちは9時までに駅に着かなければなりません。','We must get to the station by nine.','to'],
+ ['must','私たちはテスト中にスマートフォンを使ってはいけません。','We must not use our phones during the test.','don\'t'],
+ ['must','私たちは授業に遅れてはいけません。','We must not be late for class.','don\'t'],
+ ['must','私たちは先生の話をしっかり聞かなければなりません。','We must listen to our teacher carefully.','to'],
+ ['must','ここに自転車を止めてはいけません。','You must not park your bike here.','don\'t'],
+ ['must','彼女は小さな弟の世話をしなければなりません。','She must take care of her little brother.','musts','must は助動詞なので、主語が She でも must のまま（musts にはならない）。'],
+
+ // ---- SVOO ----
+ ['svoo','あなたに私のかさを貸してあげるよ。','I\'ll lend you my umbrella.','lent','lend ＋ 人 ＋ もの：「人にものを貸す」。'],
+ ['svoo','あなたにサンドイッチを作ってあげるよ。','I\'ll make you a sandwich.','makes','make ＋ 人 ＋ もの：「人にものを作ってあげる」。'],
+ ['svoo','祖母は私に新しい腕時計をくれました。','My grandmother gave me a new watch.','gives','gave は give の過去形。give ＋ 人 ＋ もの。'],
+ ['svoo','私にお茶を1杯入れてくれませんか。','Can you make me a cup of tea?','makes'],
+ ['svoo','あなたに私の電話番号を教えますね。','I\'ll give you my phone number.','gave'],
+ ['svoo','彼は私たちにおもしろい話をしてくれました。','He told us a funny story.','tells','told は tell の過去形。tell ＋ 人 ＋ もの。'],
+ ['svoo','私は花に誕生日プレゼントをあげるつもりです。','I will give Hana a birthday present.','gave'],
+ ['svoo','あなたの消しゴムを貸してくれませんか。','Can you lend me your eraser?','lent'],
+ ['svoo','私たちのコーチは私たちにバスケットボールを教えてくれます。','Our coach teaches us basketball.','taught','teach ＋ 人 ＋ もの。主語が3人称単数なので teaches。'],
+ ['svoo','私に時間を教えてくれませんか。','Can you tell me the time?','told'],
+ ['svoo','私はエマにパンケーキを作ってあげるつもりです。','I will make Emma some pancakes.','made'],
+ ['svoo','いとこが私にマンガ本を貸してくれました。','My cousin lent me a comic book.','lend'],
+ ['svoo','私の新しいかばんを見せてあげるね。','I\'ll show you my new bag.','showed','show ＋ 人 ＋ もの。「もの」の部分に where to 〜 などが入ることもあります。'],
+ ['svoo','レオは私たちにお昼ごはん用のサラダを作ってくれました。','Leo made us some salad for lunch.','makes'],
+
+ // ---- glad to ----
+ ['glad','お会いできてうれしいです。','I\'m glad to meet you.','meeting','to meet が「うれしい」理由。'],
+ ['glad','エマは故郷を離れるのが悲しかったです。','Emma was sad to leave her hometown.','leaving'],
+ ['glad','庭でネコを見つけて驚いています。','I\'m surprised to find a cat in the garden.','finding'],
+ ['glad','そのよい知らせを聞いてうれしいです。','I\'m glad to hear the good news.','hearing'],
+ ['glad','私は由紀からメッセージをもらってうれしかったです。','I was happy to receive a message from Yuki.','receiving'],
+ ['glad','私たちは駅にとてもたくさんの人がいて驚きました。','We were surprised to see so many people at the station.','seeing'],
+ ['glad','私は大好きな歌手に会えてうれしかったです。','I was happy to meet my favorite singer.','meeting'],
+ ['glad','彼らはその悪い知らせを聞いて悲しかったです。','They were sad to hear the bad news.','was'],
+ ['glad','私は試合に勝ててとてもうれしかったです。','I was very glad to win the game.','winning'],
+ ['glad','彼女はあなたのメールをもらってうれしかったです。','She was happy to get your email.','were'],
+
+ // ---- 疑問詞 to ----
+ ['wh','図書館への行き方を教えてくれませんか。','Can you tell me how to get to the library?','what','how to 〜 ＝「〜の仕方・どう〜すべきか」。'],
+ ['wh','私はこのゲームのやり方がわかりません。','I don\'t know how to play this game.','what'],
+ ['wh','彼はかぎをどこで見つければよいか知っています。','He knows where to find the key.','when','where to 〜 ＝「どこで・どこへ〜すべきか」。'],
+ ['wh','私たちはどのバスに乗るべきかについて話しました。','We talked about which bus to take.','what','which ＋ 名詞 ＋ to 〜 ＝「どの…を〜すべきか」。'],
+ ['wh','私は先生に何を読めばよいか聞きます。','I will ask my teacher what to read.','how','what to 〜 ＝「何を〜すべきか」。'],
+ ['wh','いつ始めればよいか教えてください。','Please tell me when to start.','where','when to 〜 ＝「いつ〜すべきか」。'],
+ ['wh','私は彼に何と言えばいいかわかりません。','I don\'t know what to say to him.','how'],
+ ['wh','彼女はかばんをどこに置けばよいか忘れてしまいました。','She forgot where to put her bag.','when'],
+ ['wh','私はどのシャツを着るか迷っていました。','I was wondering which shirt to wear.','what'],
+ ['wh','パンケーキの作り方を知っていますか。','Do you know how to make pancakes?','what'],
+ ['wh','私たちは、今年の夏にどこへ行けばよいかわかりません。','We are not sure where to go this summer.','when'],
+ ['wh','彼は私にその機械の使い方をたずねました。','He asked me how to use the machine.','what'],
+ ['wh','私は速く泳ぐ方法を学びたいです。','I want to learn how to swim fast.','what'],
+ ['wh','彼らは何をすべきか分かりませんでした。','They did not know what to do.','how'],
+ ['wh','手をどこで洗えばよいか教えてくださいませんか。','Could you show me where to wash my hands?','when']
+];
+
+const KEEP_CAP = /^(I|I'm|I'll|I'd|Taro|Hana|Emma|Yuki|Leo)\b/;
+const Q = [];
+{
+  const counter = {};
+  RAW.forEach(r=>{
+    counter[r[0]] = (counter[r[0]]||0)+1;
+    const words = r[2].split(' ');
+    const shown = words.slice();
+    if(!KEEP_CAP.test(shown[0])) shown[0] = shown[0].toLowerCase();
+    Q.push({id:r[0]+'-'+counter[r[0]], cat:r[0], ja:r[1], en:r[2], words:shown, extra:r[3]||'', note:r[4]||''});
+  });
+}
+const catOf = id => CATS.find(c=>c.id===id);
+
+/* ============ 保存 ============ */
+const KEY='eibun-narabekae-v1';
+let store = {q:{}, best:0, played:0};
+try{ const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s&&s.q) store=s; }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+const rec = id => store.q[id] || (store.q[id]={s:0,w:0});
+const mastered = id => (store.q[id]&&store.q[id].s>=2);
+const missed = id => (store.q[id]&&store.q[id].w>0&&store.q[id].s<2);
+
+/* ============ 状態 ============ */
+const app = document.getElementById('app');
+let sel = new Set(CATS.map(c=>c.id));
+let challenge = false;
+let G = null; // game state
+
+const esc = s => String(s).replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+
+/* ============ ホーム ============ */
+function renderHome(){
+  G=null;
+  const total=Q.length, m=Q.filter(q=>mastered(q.id)).length, miss=Q.filter(q=>missed(q.id)).length;
+  app.innerHTML = `
+    <h1>英文並び替えマスター</h1>
+    <p class="lead">中2英語の大事な文法を、語順で身につけよう。</p>
+    <div class="stats">
+      <div class="stat"><b>${m}<small style="font-size:14px;color:var(--sub)"> / ${total}</small></b><span>マスターした問題</span></div>
+      <div class="stat"><b>${store.best}<small style="font-size:14px;color:var(--sub)"> / 10</small></b><span>ベストスコア</span></div>
+      <div class="stat"><b>${store.played}</b><span>プレイ回数</span></div>
+    </div>
+
+    <h2>練習する文法（タップで選ぶ）</h2>
+    <div class="cats">
+      ${CATS.map(c=>{
+        const qs=Q.filter(q=>q.cat===c.id), mm=qs.filter(q=>mastered(q.id)).length;
+        return `<button class="cat" style="--c:${c.c}" data-act="cat" data-id="${c.id}" aria-pressed="${sel.has(c.id)}">
+          <span class="dot">✓</span>
+          <span><span class="nm">${esc(c.name)}</span><br><span class="jp">${esc(c.jp)}</span></span>
+          <span class="ms">${mm} / ${qs.length}</span>
+          <span class="meter"><i style="width:${Math.round(mm/qs.length*100)}%"></i></span>
+        </button>`;}).join('')}
+    </div>
+
+    <h2>むずかしさ</h2>
+    <div class="seg" role="group" aria-label="むずかしさ">
+      <button data-act="lvl" data-v="0" aria-pressed="${!challenge}">ふつう</button>
+      <button data-act="lvl" data-v="1" aria-pressed="${challenge}">チャレンジ</button>
+    </div>
+    <p class="hintline">チャレンジ：使わない「ダミーの語」が1つまざっています。</p>
+
+    <div class="stack">
+      <button class="btn" data-act="start" ${sel.size?'':'disabled'}>10問スタート</button>
+      <button class="btn alt" data-act="startMiss" ${miss?'':'disabled'}>まちがえた問題だけ復習（${miss}問）</button>
+    </div>
+
+    <h2>文法まとめ（先に読むと解きやすい）</h2>
+    ${summaryHTML()}
+    <button class="reset" data-act="reset">記録をリセットする</button>
+  `;
+}
+function ex(en,ja){return `<div class="ex">${en}<small>${ja}</small></div>`;}
+function summaryHTML(){
+  const body = {
+   haveto:`<p>〈have [has] to ＋ 動詞の原形〉＝「〜する必要がある（〜しなければならない）」</p>
+     ${ex('I have to wake up early.','私は早く起きなければならない。')}
+     ${ex('My brother has to wake up early.','主語が3人称単数 → has to')}
+     ${ex('I don\'t have to wake up early.','早く起きる必要はない（＝不要）')}
+     ${ex('Do we have to wake up early?','疑問文は Do / Does ＋ 主語 ＋ have to 〜?')}
+     <p>過去形は <b>had to</b>、否定の過去形は <b>didn't have to</b>。</p>`,
+   must:`<p>〈must ＋ 動詞の原形〉＝「〜しなければならない」（義務・命令）</p>
+     ${ex('I must wash my hands.','手を洗わなければならない')}
+     ${ex('You must not park here.','ここに止めてはいけない（禁止） = Don\'t park here.')}
+     <p><span class="ng">注意：</span><b>must not</b>＝してはいけない（禁止）／ <b>don't have to</b>＝する必要はない（不要）。意味がまったくちがいます。must は助動詞なので can と同じ使い方で、過去形がないため過去は had to を使います。</p>`,
+   svoo:`<p>〈動詞 ＋ 人 ＋ もの〉＝「人に ものを〜する」</p>
+     ${ex('I\'ll lend you my pen.','あなたに私のペンを貸すよ。')}
+     ${ex('I\'ll make you a cake.','あなたにケーキを作ってあげるよ。')}
+     ${ex('Dad gave me a bike.','父は私に自転車をくれた。')}
+     ${ex('She told me a secret.','彼女は私に秘密を教えてくれた。')}
+     <p>give / make / lend / tell のほか、show・teach も同じ形です。「人」が先、「もの」があと！</p>`,
+   glad:`<p>〈感情を表す語 ＋ to ＋ 動詞の原形〉＝「〜して（うれしい・悲しい・驚いた）」</p>
+     ${ex('I\'m glad to see you again.','また会えてうれしい。')}
+     ${ex('Ken was sad to lose the game.','健は試合に負けて悲しかった。')}
+     ${ex('I\'m surprised to know the answer.','答えを知って驚いた。')}
+     <p>to 以下が、その気持ちになった<b>原因・理由</b>を表します。</p>`,
+   wh:`<p>〈疑問詞 ＋ to ＋ 動詞の原形〉＝「〜すべきか」</p>
+     ${ex('how to 〜','〜の仕方・どう〜すべきか　I know how to ride a bike.')}
+     ${ex('what to 〜','何を〜すべきか　Tell me what to buy.')}
+     ${ex('where to 〜','どこで〜すべきか　I know where to wait.')}
+     ${ex('when to 〜','いつ〜すべきか　Ask him when to come.')}
+     ${ex('which to 〜','どちらを〜すべきか　I can\'t decide which to choose.')}
+     <p>know・tell・ask・decide などの後ろに置いて、目的語として使うことが多いです。</p>`
+  };
+  return CATS.map(c=>`<details style="--c:${c.c}"><summary><i></i>${esc(c.name)}<span style="font-weight:500;color:var(--sub);font-size:12px">${esc(c.jp.split(' / ')[0])}</span></summary><div class="body">${body[c.id]}</div></details>`).join('');
+}
+
+/* ============ ゲーム ============ */
+function startGame(onlyMissed){
+  let pool = Q.filter(q=>sel.has(q.cat));
+  if(onlyMissed) pool = Q.filter(q=>missed(q.id));
+  if(!pool.length) return;
+  // 未習得を優先しつつランダムに
+  pool = pool.map(q=>({q, k:(mastered(q.id)?1:0)+Math.random()*.9})).sort((a,b)=>a.k-b.k).map(o=>o.q);
+  const picked = shuffle(pool.slice(0,10));
+  G = {queue:picked, i:0, correct:0, results:[], combo:0};
+  loadQuestion();
+}
+function loadQuestion(){
+  const q = G.queue[G.i];
+  let tiles = q.words.map((w,k)=>({id:k,text:w}));
+  if(challenge && q.extra) tiles.push({id:99,text:q.extra});
+  const answer = q.words.join(' ').toLowerCase();
+  let s, tries=0;
+  do{ s=shuffle(tiles); tries++; }while(tries<10 && s.map(t=>t.text).join(' ').toLowerCase()===answer);
+  Object.assign(G,{tiles:s, placed:[], checked:false, ok:null, hint:false});
+  renderQuiz();
+}
+function renderQuiz(){
+  const q=G.queue[G.i], c=catOf(q.cat), n=G.queue.length;
+  const needN = q.words.length;
+  const bank = G.tiles.map(t=>{
+    const used = G.placed.includes(t.id);
+    const hl = G.hint && !G.checked && !used && t.text.toLowerCase()===q.words[G.placed.length]?.toLowerCase() && !G.placed.length ? ' hl':'';
+    return `<button class="tile${used?' used':''}${hl}" data-act="add" data-id="${t.id}" ${used||G.checked?'tabindex="-1"':''}>${esc(t.text)}</button>`;
+  }).join('');
+  const placedHTML = G.placed.length ? G.placed.map((id,pos)=>{
+    const t=G.tiles.find(x=>x.id===id);
+    let cls='';
+    if(G.checked){ cls = t.text.toLowerCase()===q.words[pos].toLowerCase() ? ' ok':' bad'; }
+    return `<button class="tile${cls}${G.checked?' locked':''}" data-act="rm" data-id="${id}">${esc(t.text)}</button>`;
+  }).join('') : `<div class="empty">下の単語をタップして、ここに並べよう</div>`;
+  const full = G.placed.length===G.tiles.filter(t=>t.id!==99).length || G.placed.length===needN;
+
+  let fb='';
+  if(G.checked){
+    fb = `<div class="fb ${G.ok?'ok':'ng'}" role="status">
+      <h3>${G.ok?'⭕ 正解！':'❌ おしい！'}${G.ok&&G.combo>=3?` <small style="font-size:13px">${G.combo}問連続</small>`:''}</h3>
+      <div class="ans">${esc(q.en)}<button class="speak" data-act="speak" aria-label="発音を聞く">🔊</button></div>
+      <div class="note"><b>ポイント：</b>${esc(q.note||c.tip)}</div>
+    </div>
+    <div class="stack"><button class="btn" data-act="next">${G.i+1>=n?'結果を見る':'つぎの問題'}</button></div>`;
+  }
+
+  app.innerHTML = `
+    <div class="top">
+      <button class="quit" data-act="home">✕ やめる</button>
+      <div class="prog" aria-hidden="true"><i style="width:${(G.i+(G.checked?1:0))/n*100}%"></i></div>
+      <div class="count">${G.i+1} / ${n}</div>
+    </div>
+    <span class="badge" style="--c:${c.c}">${esc(c.name)}</span>
+    <div class="jp-q">${esc(q.ja)}</div>
+    ${G.hint?`<div class="hintbox" style="--c:${c.c}">💡 ${esc(c.tip)}</div>`:''}
+    <div class="paper"><div class="rows" aria-label="あなたの答え">${placedHTML}</div></div>
+    ${G.checked?'':`
+      <div class="bank" aria-label="単語カード">${bank}</div>
+      <div class="tools">
+        <button data-act="undo" ${G.placed.length?'':'disabled'}>↩ 1つ戻す</button>
+        <button data-act="clear" ${G.placed.length?'':'disabled'}>全部消す</button>
+        <button data-act="hint">💡 ヒント</button>
+      </div>
+      <button class="btn" data-act="check" ${full?'':'disabled'}>答え合わせ</button>`}
+    ${fb}
+  `;
+}
+function check(){
+  const q=G.queue[G.i];
+  const mine = G.placed.map(id=>G.tiles.find(t=>t.id===id).text).join(' ').toLowerCase();
+  const ok = mine === q.words.join(' ').toLowerCase();
+  G.checked=true; G.ok=ok;
+  const r = rec(q.id);
+  if(ok){
+    G.correct++; G.combo++;
+    if(!G.hint) r.s=Math.min(r.s+1,3);
+  }else{ G.combo=0; r.s=0; r.w++; }
+  G.results.push({q, ok});
+  save();
+  renderQuiz();
+}
+function renderResult(){
+  const n=G.queue.length, sc=G.correct;
+  store.played++; if(sc>store.best) store.best=sc; save();
+  const msg = sc===n?'パーフェクト！文法マスターだ！': sc>=8?'すばらしい！あと少しで完璧。': sc>=5?'いい調子。まちがえた問題をもう一度やってみよう。':'まずは「文法まとめ」を読んで、もう一度チャレンジしよう。';
+  const bad = G.results.filter(r=>!r.ok);
+  app.innerHTML = `
+    <div class="score"><div class="big">${sc}<small> / ${n}</small></div><p>${msg}</p></div>
+    ${bad.length?`<h2>まちがえた問題</h2>`+bad.map(r=>{const c=catOf(r.q.cat);return `<div class="miss" style="--c:${c.c}"><div class="j">${esc(r.q.ja)}</div><div class="e">${esc(r.q.en)}</div></div>`}).join(''):''}
+    <div class="stack">
+      <button class="btn" data-act="start">もう一度（新しい10問）</button>
+      <button class="btn alt" data-act="startMiss" ${Q.some(q=>missed(q.id))?'':'disabled'}>まちがえた問題だけ復習</button>
+      <button class="btn alt" data-act="home">ホームにもどる</button>
+    </div>`;
+}
+
+/* ============ イベント ============ */
+app.addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const act=b.dataset.act, id=b.dataset.id;
+  switch(act){
+    case 'cat': sel.has(id)?sel.delete(id):sel.add(id); renderHome(); break;
+    case 'lvl': challenge = b.dataset.v==='1'; renderHome(); break;
+    case 'start': if(sel.size) startGame(false); else renderHome(); break;
+    case 'startMiss': startGame(true); break;
+    case 'home': renderHome(); break;
+    case 'add': if(!G.checked){ G.placed.push(+id); renderQuiz(); } break;
+    case 'rm': if(!G.checked){ G.placed=G.placed.filter(x=>x!==+id); renderQuiz(); } break;
+    case 'undo': G.placed.pop(); renderQuiz(); break;
+    case 'clear': G.placed=[]; renderQuiz(); break;
+    case 'hint': G.hint=!G.hint; renderQuiz(); break;
+    case 'check': check(); break;
+    case 'next': G.i++; if(G.i>=G.queue.length) renderResult(); else loadQuestion(); window.scrollTo(0,0); break;
+    case 'speak':
+      try{ const u=new SpeechSynthesisUtterance(G.queue[G.i].en); u.lang='en-US'; u.rate=.9; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(err){}
+      break;
+    case 'reset':
+      if(confirm('学習記録をすべてリセットしますか？')){ store={q:{},best:0,played:0}; save(); renderHome(); }
+      break;
+  }
+});
+
+renderHome();
+</script>
+</body>
+</html>
